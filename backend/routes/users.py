@@ -185,6 +185,8 @@ async def create_user(
     return user
 
 
+# @Dr. Sarah. This is the endpoint that currently only allows admin to update
+# user profiles.
 @router.patch(
     "/{user_id}",
     response_model=UserResponse,
@@ -193,8 +195,12 @@ async def create_user(
 async def update_user(
     user_id: int,
     profile_data: UserProfileUpdate,
-    current_user: User = Depends(require_admin),
-    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_admin),  # Here is the admin dependency
+    db: AsyncSession = Depends(get_db),  # Is there another dependency that checks to
+    # see if the request is coming from the current user (I think I saw something like
+    # that being used in /api/auth when I was reviewing Simon's PR). And how could we
+    # do an either-or scenario with having to be an admin OR the current user (and
+    # only allow them to change certain things based on their role)
 ):
     """
     Update a user's profile fields.

@@ -80,8 +80,6 @@ async def test_get_user_by_id_success(client: AsyncClient, auth_headers):
     assert response.status_code == 200
     user = response.json()
 
-    #  {id: int, role: RoleInUser, email_verified: bool, is_active: bool,
-    # created_at: datetime, updated_at: datetime}
     assert "id" in user
     assert "role" in user
     assert "email_verified" in user
@@ -197,8 +195,11 @@ async def test_create_user_duplicate_username(
 # Test PATCH /api/users/{id}
 # --------------------------
 # TODO: Modify endpoint to allow a user to update PARTS of their own profile
-# Wonder about how a manager would recognize a user if they change their name...
 # TODO: Make tests to verify this part
+# TODO: about how a manager would recognize a user if they change their name...
+# @Dr. Sarah. We discussed wanting the user to also be able to update some of their
+# information. This would require modifying the endpoint/dependencies. I haven't done
+# any implementation or testing, but I wanted to make a not of it
 @pytest.mark.asyncio
 async def test_patch_user_by_id_requires_auth(client: AsyncClient, user_auth_headers):
     """Test that PATCH /api/users/{id} requires authentication"""
@@ -266,11 +267,12 @@ async def test_patch_user_by_id_no_params_given(client: AsyncClient, auth_header
     assert response.status_code == 422
 
 
+# @Dr. Sarah -- PATCH /api/users/{id} - int won't convert to String. Passing 391
+# causes a 422 error. See the tagged issue for more detail
 @pytest.mark.asyncio
 async def test_patch_user_by_id_bad_params_given(client: AsyncClient, auth_headers):
     """Test that PATCH /api/users/{id} returns 422 for invalid parameter types"""
     # Most params are strings. They are not automatically converted to string.
-    # ! Here is what you're looking for
     profile_data = {"first_name": 391}
     # NOTE: It is interesting that this one won't go through, but other
     # type conversions (checked in PATCH /api/users/{id}/status) go through just fine
@@ -310,6 +312,8 @@ async def test_patch_user_by_id_empty_string_param(client: AsyncClient, auth_hea
     assert (
         user_data["first_name"] is None
     )  # How interesting, it get's saved as None, not ""
+    # @Dr. Sarah ^^ This may be something to look at, but I don't really see it
+    # as a particularly big deal
 
 
 @pytest.mark.asyncio
@@ -591,6 +595,8 @@ async def test_patch_user_status_by_id_no_parameters(
     assert response.status_code == 422
 
 
+# @Dr. Sarah, this one isn't super important, but it's good to note that
+# a lot of the behavior is as we'd expect
 @pytest.mark.asyncio
 async def test_patch_user_status_by_id_bad_parameters(
     client: AsyncClient, auth_headers, regular_user
@@ -634,6 +640,10 @@ async def test_patch_user_status_by_id_bad_parameters(
     assert response.status_code == 422
 
 
+# @Dr. Sarah. -- PATCH /api/users/{id}/status - some 'int' and 'String' will convert
+# to 'boolean'
+# This is the function with the boolean we were talking about in class. See the issue
+# I attached to the PR for more discussion on it.
 @pytest.mark.asyncio
 async def test_patch_user_status_by_id_convertable_parameters(
     client: AsyncClient, auth_headers, regular_user
@@ -666,7 +676,8 @@ async def test_patch_user_status_by_id_convertable_parameters(
     original_user_data = response.json()
     assert original_user_data["is_active"] is False  # It did actually change
 
-    # Permissible type for is_active. Also tests which ID is used if a different one
+    # Permissible type for is_active.
+    # Also tests which ID is used if a different one
     # is passed in for the parameter and the url. In this case, it ignores the parameter
     # one, 55, and uses the one in the url, id_to_user, which is 2
     status_data = {"user_id": 55, "is_active": 1}
@@ -998,3 +1009,60 @@ async def test_patch_user_role_to_admin_by_id_successful(
     # Test they can now make calls to things like GET /api/users/{id}
     response = await client.get("/api/users/1", headers=user_auth_headers)
     assert response.status_code == 200
+
+
+# @Dr. Sarah -- Fixtures Issue
+# The comments try to explain it, but basically once the regular_user is promoted
+# The user_auth_header *does* get upgraded to represent the fact that it's now an
+# admin (verified by trying to GET a protected route). But somehow the fixture
+# makes the two auth_headers come across as the SAME auth_header. Essentially,
+# it causes all admins to be seen as the same admin, so the endpoint rejects it
+# because you're not supposed to be able to demote yourself.
+'''
+@pytest.mark.asyncio
+async def test_patch_user_role_to_admin_then_demote_another_admin(
+    client: AsyncClient, admin_user, auth_headers, regular_user, user_auth_headers
+):
+    """Test that PATCH /api/users/{id}/status returns 200 for
+    successful status update and that they can then demote other admins"""
+    id_to_use = regular_user.id
+
+    role_data = {
+        "user_id": id_to_use,
+        "role": "admin",
+    }
+    response = await client.patch(
+        f"/api/users/{id_to_use}/role", headers=auth_headers, json=role_data
+    )
+    assert response.status_code == 200    
+
+    # Then check that the updated info has persisted
+    response = await client.get(f"/api/users/{id_to_use}", headers=auth_headers)
+    updated_data = response.json()
+    assert updated_data["role"]["name"] == "admin"
+
+    # Test they can now make calls to things like GET /api/users/{id}
+    # Repeat test as last function as sanity check 
+    # (the user_auth_headers now has admin powers)
+    response = await client.get("/api/users/1", headers=user_auth_headers)
+    assert response.status_code == 200
+
+
+    # Additional proof that the endpoint is seeing the two auth headers fixtures
+    # as the same object (which is the reason the call after fails)
+
+    assert auth_headers != user_auth_headers    # <-- currently failing
+
+    # Now see if the new admin (regular_user, user_auth_headers) can
+    # demote the original admin (admin_user, auth_headers)
+    role_data = {
+        "user_id": admin_user.id,
+        "role": "user"
+    }
+    response = await client.patch(
+        f"/api/users/{admin_user.id}/role", headers=user_auth_headers, json=role_data
+    )   # pass in the id of the original admin, and use the headers 
+    # credentials of the new admin
+    assert response.status_code == 200 # <-- Currently fails (400 error) because it
+    # thinks the admin is trying to demote themselves
+'''
