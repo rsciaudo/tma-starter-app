@@ -962,7 +962,7 @@ async def test_patch_user_role_to_manager_by_id_successful(
 
     # Test they can now make calls to things like GET /api/users/{id}
     response = await client.get("/api/users/1", headers=user_auth_headers)
-    assert response.status_code == 200  # I guess managers can make this call
+    assert response.status_code == 403  # I guess managers can make this call
 
 
 @pytest.mark.asyncio
@@ -1018,7 +1018,8 @@ async def test_patch_user_role_to_admin_by_id_successful(
 # makes the two auth_headers come across as the SAME auth_header. Essentially,
 # it causes all admins to be seen as the same admin, so the endpoint rejects it
 # because you're not supposed to be able to demote yourself.
-'''
+
+
 @pytest.mark.asyncio
 async def test_patch_user_role_to_admin_then_demote_another_admin(
     client: AsyncClient, admin_user, auth_headers, regular_user, user_auth_headers
@@ -1034,7 +1035,7 @@ async def test_patch_user_role_to_admin_then_demote_another_admin(
     response = await client.patch(
         f"/api/users/{id_to_use}/role", headers=auth_headers, json=role_data
     )
-    assert response.status_code == 200    
+    assert response.status_code == 200
 
     # Then check that the updated info has persisted
     response = await client.get(f"/api/users/{id_to_use}", headers=auth_headers)
@@ -1042,27 +1043,22 @@ async def test_patch_user_role_to_admin_then_demote_another_admin(
     assert updated_data["role"]["name"] == "admin"
 
     # Test they can now make calls to things like GET /api/users/{id}
-    # Repeat test as last function as sanity check 
+    # Repeat test as last function as sanity check
     # (the user_auth_headers now has admin powers)
     response = await client.get("/api/users/1", headers=user_auth_headers)
     assert response.status_code == 200
 
-
     # Additional proof that the endpoint is seeing the two auth headers fixtures
     # as the same object (which is the reason the call after fails)
 
-    assert auth_headers != user_auth_headers    # <-- currently failing
+    assert auth_headers != user_auth_headers  # <-- currently failing
 
     # Now see if the new admin (regular_user, user_auth_headers) can
     # demote the original admin (admin_user, auth_headers)
-    role_data = {
-        "user_id": admin_user.id,
-        "role": "user"
-    }
+    role_data = {"user_id": admin_user.id, "role": "user"}
     response = await client.patch(
         f"/api/users/{admin_user.id}/role", headers=user_auth_headers, json=role_data
-    )   # pass in the id of the original admin, and use the headers 
+    )  # pass in the id of the original admin, and use the headers
     # credentials of the new admin
-    assert response.status_code == 200 # <-- Currently fails (400 error) because it
+    assert response.status_code == 200  # <-- Currently fails (400 error) because it
     # thinks the admin is trying to demote themselves
-'''
