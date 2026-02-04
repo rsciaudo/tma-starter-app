@@ -35,7 +35,7 @@ class CourseGroup(Base):
     group_id = Column(
         Integer, ForeignKey("groups.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    ordering = Column(Integer, nullable=False, default=0)
+    ordering = Column(Integer, nullable=False, default=0, index=True)
     date_assigned = Column(Date, nullable=False, default=date.today)
     created_at = Column(TIMESTAMP, default=datetime.utcnow, nullable=False)
 

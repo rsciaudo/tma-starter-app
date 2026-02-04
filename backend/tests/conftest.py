@@ -251,7 +251,7 @@ async def test_group_accessible_by_regular(test_db, admin_user, regular_user):
         from sqlalchemy.orm import joinedload
 
         from models import Group
-        from models.group import UserGroup
+        from models.user_group import UserGroup
 
         # Create group
         group = Group(
