@@ -187,82 +187,63 @@ async def test_register_new_user_with_duplicate_email_error(
 # Tests for POST /api/auth/login
 @pytest.mark.asyncio
 async def test_login_with_proper_credentials_returns_access_token(
-    client: AsyncClient, auth_headers
+    client: AsyncClient, auth_headers, regular_user
 ):
     """Test that POST /api/auth/login successfully logs in
     with proper username/password"""
+
     user_data = {
-        "username": "username",
-        "email": "user@example.com",
-        "password": "password",
+        "username": regular_user.username,
+        "password": regular_user.plaintext_password,
     }
-    # Create user
-    create_response = await client.post("/api/auth/register", json=user_data)
-    assert create_response.status_code == 201
-    user_id = create_response.json()["id"]
-
-    # Verify the first user was actually created
-    get_response = await client.get(f"/api/users/{user_id}", headers=auth_headers)
-    assert get_response.status_code == 200
-    assert get_response.json()["username"] == "username"
-
-    user_data = {"username": "username", "password": "password"}
     # Verify the login is successful
     response = await client.post("/api/auth/login", json=user_data)
     assert response.status_code == 200
 
+    assert response.json()["access_token"] is not None
+
 
 @pytest.mark.asyncio
-async def test_login_with_empty_username_returns_error(client: AsyncClient):
+async def test_login_with_empty_username_returns_error(
+    client: AsyncClient, regular_user
+):
     """Test that POST /api/auth/login returns 401 Unauthorized
     when given an empty username"""
-    user_data = {"username": "", "password": "password"}
+    user_data = {"username": "", "password": regular_user.plaintext_password}
     response = await client.post("/api/auth/login", json=user_data)
     assert response.status_code == 401
 
 
 @pytest.mark.asyncio
-async def test_login_with_empty_password_returns_error(client: AsyncClient):
+async def test_login_with_empty_password_returns_error(
+    client: AsyncClient, regular_user
+):
     """Test that POST /api/auth/login returns 401 Unauthorized
     when given an empty password"""
-    user_data = {"username": "username", "password": ""}
+    user_data = {"username": regular_user.username, "password": ""}
     response = await client.post("/api/auth/login", json=user_data)
     assert response.status_code == 401
 
 
 @pytest.mark.asyncio
-async def test_login_with_incorrect_password_returns_error(client: AsyncClient):
+async def test_login_with_incorrect_password_returns_error(
+    client: AsyncClient, regular_user
+):
     """Test that POST /api/auth/login returns 401 Unauthorized
     when given an incorrect password"""
-    user_data = {
-        "username": "username",
-        "email": "user@example.com",
-        "password": "password",
-    }
-    # Create user
-    create_response = await client.post("/api/auth/register", json=user_data)
-    assert create_response.status_code == 201
-
-    user_data = {"username": "username", "password": "notpassword"}
+    user_data = {"username": regular_user.username, "password": "notpassword"}
     response = await client.post("/api/auth/login", json=user_data)
     assert response.status_code == 401
 
 
 @pytest.mark.asyncio
-async def test_login_with_disabled_acc_returns_error(client: AsyncClient, auth_headers):
+async def test_login_with_disabled_acc_returns_error(
+    client: AsyncClient, auth_headers, regular_user
+):
     """Test that POST /api/auth/login returns 403 Forbidden
     when logging into a disabled account"""
-    user_data = {
-        "username": "username",
-        "email": "user@example.com",
-        "password": "password",
-    }
-    # Create user
-    create_response = await client.post("/api/auth/register", json=user_data)
-    assert create_response.status_code == 201
-    user_id = create_response.json()["id"]
-
     # Deactivate account
+    user_id = regular_user.id
     status_data = {"user_id": user_id, "is_active": False}
     get_response = await client.patch(
         f"/api/users/{user_id}/status", headers=auth_headers, json=status_data
@@ -271,7 +252,10 @@ async def test_login_with_disabled_acc_returns_error(client: AsyncClient, auth_h
     assert get_response.json()["is_active"] == 0
 
     # Attempt to log into deactivated account
-    user_data = {"username": "username", "password": "password"}
+    user_data = {
+        "username": regular_user.username,
+        "password": regular_user.plaintext_password,
+    }
     response = await client.post("/api/auth/login", json=user_data)
     assert response.status_code == 403
     # Returns 403 Forbidden
@@ -280,7 +264,7 @@ async def test_login_with_disabled_acc_returns_error(client: AsyncClient, auth_h
 # Tests for GET /api/auth/me
 @pytest.mark.asyncio
 async def test_get_current_info_returns_user_info(
-    client: AsyncClient, user_auth_headers
+    client: AsyncClient, user_auth_headers, regular_user
 ):
     """Test that GET /api/auth/me returns proper user info
     when given bearer token authentication"""
@@ -291,10 +275,10 @@ async def test_get_current_info_returns_user_info(
 
     # Check that the data retrieved is what it should be
     retrieved_data = response.json()
-    assert retrieved_data["username"] == "regular_user"
-    assert retrieved_data["email"] == "user@test.com"
-    assert retrieved_data["role"]["id"] == 1
-    assert retrieved_data["is_active"] == 1
+    assert retrieved_data["username"] == regular_user.username
+    assert retrieved_data["email"] == regular_user.email
+    assert retrieved_data["role"]["id"] == regular_user.role_id
+    assert retrieved_data["is_active"] == regular_user.is_active
 
 
 @pytest.mark.asyncio
