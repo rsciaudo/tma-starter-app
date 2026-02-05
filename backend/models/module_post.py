@@ -43,7 +43,7 @@ class ModulePost(Base):
     created_at = Column(TIMESTAMP, default=datetime.utcnow, nullable=False)
 
     # Relationships
-    modlue = relationship("Module", backref="module_posts")
+    module = relationship("Module", backref="module_posts")
     post = relationship("Post", backref="module_posts")
 
     # Ensure a post can only be assigned to a module once
