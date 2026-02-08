@@ -105,7 +105,7 @@ async def get_all_modules(
     response_model=ModuleResponse,
     dependencies=[Security(security_scheme)],
 )
-async def get_course(
+async def get_module(
     module_id: int,
     current_user=Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
