@@ -16,7 +16,6 @@ from database import get_db
 from models import CourseModule, Module, ModulePost, PostInModule, UserModule
 from schemas.module import (
     ModuleCreate,
-    ModuleDetailResponse,
     ModuleResponse,
     ModuleUpdate,
 )
@@ -103,7 +102,7 @@ async def get_all_modules(
 
 @router.get(
     "/{module_id}",
-    response_model=ModuleDetailResponse,
+    response_model=ModuleResponse,
     dependencies=[Security(security_scheme)],
 )
 async def get_course(
