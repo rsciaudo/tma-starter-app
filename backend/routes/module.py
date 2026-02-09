@@ -7,7 +7,7 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Security, status
 from post import Post
-from sqlalchemy import or_, delete
+from sqlalchemy import delete, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -74,7 +74,7 @@ async def get_all_modules(
             )
 
         if before_date is not None:
-            temp_query = temp_query.where(Module.created_at <  before_date)
+            temp_query = temp_query.where(Module.created_at < before_date)
 
     else:
         # user is not admin, only shows modules assigned to them
@@ -132,7 +132,10 @@ async def get_module(
         }
         # only show modules a user is associated with if non-admin
     else:
-        result = await db.execute(select(Module).join(UserModule).where(
+        result = await db.execute(
+            select(Module)
+            .join(UserModule)
+            .where(
                 UserModule.user_id == current_user.id,
                 Module.id == module_id,
             )
@@ -152,7 +155,6 @@ async def get_module(
             "created_at": module.created_at,
             "updated_at": module.updated_at,
         }
-
 
 
 @router.post(
@@ -327,11 +329,9 @@ async def delete_module(
         )
     try:
         # delete ModulePosts associated with this module
-        module_posts = []
-        result = await db.execute(
+        await db.execute(
             delete(ModulePost).where(ModulePost.module_id == module_id)
         )
-        module_posts =  result.scalars().all()
 
         await db.delete(module)
         await db.commit()
