@@ -329,9 +329,7 @@ async def delete_module(
         )
     try:
         # delete ModulePosts associated with this module
-        await db.execute(
-            delete(ModulePost).where(ModulePost.module_id == module_id)
-        )
+        await db.execute(delete(ModulePost).where(ModulePost.module_id == module_id))
 
         await db.delete(module)
         await db.commit()
