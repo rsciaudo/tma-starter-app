@@ -6,18 +6,19 @@ from datetime import date
 from typing import List, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Security, status
-from post import Post
+from models import Post
 from sqlalchemy import delete, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from auth import get_current_active_user, require_admin, security_scheme
 from database import get_db
-from models import CourseModule, Module, ModulePost, PostInModule, UserModule
+from models import CourseModule, Module, ModulePost, UserModule
 from schemas.module import (
     ModuleCreate,
     ModuleResponse,
     ModuleUpdate,
+    PostInModule
 )
 
 router = APIRouter(prefix="/modules", tags=["modules"])
