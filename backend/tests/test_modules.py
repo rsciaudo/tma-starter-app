@@ -90,7 +90,7 @@ async def test_get_modules_invalid_422(client: AsyncClient, auth_headers):
     assert resp.status_code == 422
 
 
-#GET /api/modules{id} (get single module)
+#GET /api/modules/{id} (get single module)
 
 
 @pytest.mark.asyncio
@@ -113,6 +113,42 @@ async def test_get_module_string_id_422(client: AsyncClient, auth_headers):
     """GET /api/modules/{id} returns 422 for invalid id type"""
     resp = await client.get("/api/modules/{id}", headers = auth_headers)
     assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_get_module_forbidden_for_non_associated_user(client: AsyncClient, 
+                                                            auth_headers, user_headers):
+    """Regular user can't GET a module they have no association"""
+    create = await client.post(
+        "/api/modules",
+        json = {"module_data": {"title": "Private Module", "description": "x"}},
+        headers = auth_headers
+    )
+    assert create.status_code == 201, create.text
+    module_id = create.json()["id"]
+
+    resp = await client.get(f"/api/modules/{module_id}", headers = user_headers)
+
+    #depends on the implementation - either 403 or 404
+    assert resp.status_code in (403, 404), resp.text
+
+
+@pytest.mark.asyncio
+async def test_get_module_success_admin_any_module(client: AsyncClient, auth_headers):
+    """Admin can GET any module id"""
+    create = await client.post(
+        "/api/modules",
+        json = {"module_data": {"title": "Admin Access", "description": "x"}},
+        headers = auth_headers
+    )
+    assert create.status_code == 201, create.text
+    module_id = create.json()["id"]
+
+    resp = await client.get(f"/api/modules/{module_id}", headers = auth_headers)
+    assert resp.status_code == 200, resp.text
+    data = resp.json()
+    assert_module_shape(data)
+    assert data["id"] == module_id
 
 
 @pytest.mark.asyncio
