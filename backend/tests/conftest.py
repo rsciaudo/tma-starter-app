@@ -7,7 +7,7 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from auth import create_access_token
+from auth import create_access_token, get_password_hash
 from database import get_db
 from models import Base, Role, User
 from server import app
@@ -153,18 +153,19 @@ async def regular_user(test_db):
         result = await session.execute(select(Role).where(Role.name == "user"))
         user_role = result.scalar_one()
 
+        plaintext_password = "hello"
         # Create regular user
         user = User(
             username="regular_user",
             email="user@test.com",
-            hashed_password="$2b$12$dummy",
+            hashed_password=get_password_hash(plaintext_password),
             role_id=user_role.id,
             is_active=True,
         )
         session.add(user)
         await session.commit()
         await session.refresh(user)
-
+        user.plaintext_password = plaintext_password
         # Load with role relationship
         result = await session.execute(
             select(User).where(User.id == user.id).options(joinedload(User.role))
