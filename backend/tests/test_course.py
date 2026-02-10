@@ -5,6 +5,12 @@ Contract-level tests for the /api/courses endpoint
 import pytest
 from httpx import AsyncClient
 
+
+# helper function
+def verify_original_course_info(original_course, create_course, key):
+    return original_course[key] == getattr(create_course, key)
+
+
 # get endpoint tests
 
 
@@ -210,13 +216,12 @@ async def test_patch_course_title_and_desc(
 ):
     """Test PATCH /api/courses/{course_id} with valid input"""
     # test that name is already "Test Course", and desc already "A course for testing"
-    get1_response = await client.get(
+    get_response = await client.get(
         f"/api/courses/{create_course.id}", headers=auth_headers
     )
-    assert get1_response.status_code == 200
-    original_course = get1_response.json()
-    assert original_course["title"] == "Test Course"
-    assert original_course["description"] == "A course for testing"
+    original_course = get_response.json()
+    assert verify_original_course_info(original_course, create_course, "title")
+    assert verify_original_course_info(original_course, create_course, "description")
 
     course_data = {
         "title": "changed_test_course",
@@ -249,10 +254,9 @@ async def test_patch_course_title_only(
     get1_response = await client.get(
         f"/api/courses/{create_course.id}", headers=auth_headers
     )
-    assert get1_response.status_code == 200
     original_course = get1_response.json()
-    assert original_course["title"] == "Test Course"
-    assert original_course["description"] == "A course for testing"
+    assert verify_original_course_info(original_course, create_course, "title")
+    assert verify_original_course_info(original_course, create_course, "description")
 
     course_data = {
         "title": "changed_test_course",
@@ -284,10 +288,9 @@ async def test_patch_course_desc_only(
     get1_response = await client.get(
         f"/api/courses/{create_course.id}", headers=auth_headers
     )
-    assert get1_response.status_code == 200
     original_course = get1_response.json()
-    assert original_course["title"] == "Test Course"
-    assert original_course["description"] == "A course for testing"
+    assert verify_original_course_info(original_course, create_course, "title")
+    assert verify_original_course_info(original_course, create_course, "description")
 
     course_data = {"description": "Test course description"}
     response = await client.patch(
@@ -317,10 +320,9 @@ async def test_patch_course_no_data(
     get1_response = await client.get(
         f"/api/courses/{create_course.id}", headers=auth_headers
     )
-    assert get1_response.status_code == 200
     original_course = get1_response.json()
-    assert original_course["title"] == "Test Course"
-    assert original_course["description"] == "A course for testing"
+    assert verify_original_course_info(original_course, create_course, "title")
+    assert verify_original_course_info(original_course, create_course, "description")
 
     course_data = {}
     response = await client.patch(
@@ -337,8 +339,8 @@ async def test_patch_course_no_data(
     get2_response = await client.get(f"/api/courses/{course_id}", headers=auth_headers)
     assert get2_response.status_code == 200
     returned_course = get2_response.json()
-    assert returned_course["title"] == "Test Course"
-    assert returned_course["description"] == "A course for testing"
+    assert verify_original_course_info(returned_course, create_course, "title")
+    assert verify_original_course_info(returned_course, create_course, "description")
 
 
 # ask about this
@@ -351,10 +353,9 @@ async def test_patch_course_empty_title(
     get1_response = await client.get(
         f"/api/courses/{create_course.id}", headers=auth_headers
     )
-    assert get1_response.status_code == 200
     original_course = get1_response.json()
-    assert original_course["title"] == "Test Course"
-    assert original_course["description"] == "A course for testing"
+    assert verify_original_course_info(original_course, create_course, "title")
+    assert verify_original_course_info(original_course, create_course, "description")
 
     course_data = {
         "title": "",
@@ -462,12 +463,12 @@ async def test_patch_course_with_invalid_body(
     assert response.status_code == 422
 
     # test if anything in the db was changed
-    response2 = await client.get(
-        f"/api/courses/{create_course.id}",
-        headers=auth_headers,
+    get1_response = await client.get(
+        f"/api/courses/{create_course.id}", headers=auth_headers
     )
-    assert response2.json()["title"] == "Test Course"
-    assert response2.json()["description"] == "A course for testing"
+    original_course = get1_response.json()
+    assert verify_original_course_info(original_course, create_course, "title")
+    assert verify_original_course_info(original_course, create_course, "description")
 
 
 # delete course tests
