@@ -27,6 +27,7 @@ from routes import (
     auth,
     courses,
     groups,
+    module,
     users,
 )
 
@@ -67,6 +68,7 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(users.router, prefix="/api")
 app.include_router(groups.router, prefix="/api")
 app.include_router(courses.router, prefix="/api")
+app.include_router(module.router, prefix="/api")
 
 # Serve static files (production)
 static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
