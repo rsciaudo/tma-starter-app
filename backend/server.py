@@ -27,8 +27,8 @@ from routes import (
     auth,
     courses,
     groups,
-    users,
     module,
+    users,
 )
 
 
