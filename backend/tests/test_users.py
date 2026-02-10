@@ -1060,5 +1060,4 @@ async def test_patch_user_role_to_admin_then_demote_another_admin(
         f"/api/users/{admin_user.id}/role", headers=user_auth_headers, json=role_data
     )  # pass in the id of the original admin, and use the headers
     # credentials of the new admin
-    assert response.status_code == 200  # <-- Currently fails (400 error) because it
-    # thinks the admin is trying to demote themselves
+    assert response.status_code == 200
