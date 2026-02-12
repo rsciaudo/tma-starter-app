@@ -14,6 +14,7 @@ async def test_get_all_users_requires_auth(client: AsyncClient):
     """Test that GET /api/users requires authentication"""
     response = await client.get("/api/users")
     assert response.status_code == 401
+    assert "Not authenticated" in response.json()["detail"]
 
 
 @pytest.mark.asyncio
@@ -50,10 +51,12 @@ async def test_get_user_by_id_requires_auth(client: AsyncClient, user_auth_heade
     """Test that GET /api/users/{id} requires authentication"""
     response = await client.get("/api/users/1")
     assert response.status_code == 401
+    assert "Not authenticated" in response.json()["detail"]
 
     # test with headers that only have user access not admin
     response = await client.get("/api/users/1", headers=user_auth_headers)
     assert response.status_code == 403
+    assert "Access denied. Required role: admin" in response.json()["detail"]
 
 
 @pytest.mark.asyncio
@@ -70,6 +73,11 @@ async def test_get_user_by_id_incorrect_type_fields(client: AsyncClient, auth_he
     """Test that GET /api/users/{id} returns 422 for non-int required id input"""
     response = await client.get("/api/users/eleven", headers=auth_headers)
     assert response.status_code == 422
+    assert (
+        "Input should be a valid integer, unable to parse string as an integer"
+        in response.json()["detail"][0]["msg"]
+    )
+    # Why is this one burried so deep????
 
 
 @pytest.mark.asyncio
@@ -197,9 +205,6 @@ async def test_create_user_duplicate_username(
 # TODO: Modify endpoint to allow a user to update PARTS of their own profile
 # TODO: Make tests to verify this part
 # TODO: about how a manager would recognize a user if they change their name...
-# @Dr. Sarah. We discussed wanting the user to also be able to update some of their
-# information. This would require modifying the endpoint/dependencies. I haven't done
-# any implementation or testing, but I wanted to make a not of it
 @pytest.mark.asyncio
 async def test_patch_user_by_id_requires_auth(client: AsyncClient, user_auth_headers):
     """Test that PATCH /api/users/{id} requires authentication"""
@@ -208,11 +213,13 @@ async def test_patch_user_by_id_requires_auth(client: AsyncClient, user_auth_hea
     }
     response = await client.patch("/api/users/1", json=profile_data)
     assert response.status_code == 401
+    assert "Not authenticated" in response.json()["detail"]
 
     response = await client.patch(
         "/api/users/1", json=profile_data, headers=user_auth_headers
     )
     assert response.status_code == 403
+    assert "Access denied. Required role: admin" in response.json()["detail"]
 
 
 @pytest.mark.asyncio
@@ -225,6 +232,7 @@ async def test_patch_user_by_id_not_found(client: AsyncClient, auth_headers):
         "/api/users/999999", headers=auth_headers, json=profile_data
     )
     assert response.status_code == 404
+    assert "not found" in response.json()["detail"].lower()
 
 
 @pytest.mark.asyncio
@@ -237,6 +245,10 @@ async def test_patch_user_by_id_not_int(client: AsyncClient, auth_headers):
         "/api/users/eleven", headers=auth_headers, json=profile_data
     )
     assert response.status_code == 422
+    assert (
+        "Input should be a valid integer, unable to parse string as an integer"
+        in response.json()["detail"][0]["msg"]
+    )
 
 
 @pytest.mark.asyncio
@@ -265,10 +277,9 @@ async def test_patch_user_by_id_no_params_given(client: AsyncClient, auth_header
     """Test that PATCH /api/users/{id} returns 422 because no paremeters were given"""
     response = await client.patch("/api/users/1", headers=auth_headers)
     assert response.status_code == 422
+    assert "Field required" in response.json()["detail"][0]["msg"]
 
 
-# @Dr. Sarah -- PATCH /api/users/{id} - int won't convert to String. Passing 391
-# causes a 422 error. See the tagged issue for more detail
 @pytest.mark.asyncio
 async def test_patch_user_by_id_bad_params_given(client: AsyncClient, auth_headers):
     """Test that PATCH /api/users/{id} returns 422 for invalid parameter types"""
@@ -280,6 +291,7 @@ async def test_patch_user_by_id_bad_params_given(client: AsyncClient, auth_heade
         "/api/users/1", headers=auth_headers, json=profile_data
     )
     assert response.status_code == 422
+    assert "Input should be a valid string" in response.json()["detail"][0]["msg"]
 
     # Give a bad/un-convertable date value, which should cause 422 error
     profile_data = {"child_dob": "BAD DATE THERES NO WAY THIS CONVERTS"}
@@ -287,6 +299,10 @@ async def test_patch_user_by_id_bad_params_given(client: AsyncClient, auth_heade
         "/api/users/1", headers=auth_headers, json=profile_data
     )
     assert response.status_code == 422
+    assert (
+        "Input should be a valid date or datetime, invalid character in year"
+        in response.json()["detail"][0]["msg"]
+    )
 
 
 @pytest.mark.asyncio
@@ -312,8 +328,6 @@ async def test_patch_user_by_id_empty_string_param(client: AsyncClient, auth_hea
     assert (
         user_data["first_name"] is None
     )  # How interesting, it get's saved as None, not ""
-    # @Dr. Sarah ^^ This may be something to look at, but I don't really see it
-    # as a particularly big deal
 
 
 @pytest.mark.asyncio
@@ -434,9 +448,11 @@ async def test_delete_user_by_id_requires_auth(client: AsyncClient, user_auth_he
         "/api/users/1",
     )
     assert response.status_code == 401
+    assert "Not authenticated" in response.json()["detail"]
 
     response = await client.delete("/api/users/1", headers=user_auth_headers)
     assert response.status_code == 403
+    assert "Access denied. Required role: admin" in response.json()["detail"]
 
 
 @pytest.mark.asyncio
@@ -444,6 +460,7 @@ async def test_delete_user_by_id_not_found(client: AsyncClient, auth_headers):
     """Test that DELETE /api/users/{id} returns 404 for non-existent user"""
     response = await client.delete("/api/users/99999999999", headers=auth_headers)
     assert response.status_code == 404
+    assert "not found" in response.json()["detail"].lower()
 
 
 @pytest.mark.asyncio
@@ -454,6 +471,10 @@ async def test_delete_user_by_id_incorrect_type_fields(
     invalid paremeters were given"""
     response = await client.delete("/api/users/eleven", headers=auth_headers)
     assert response.status_code == 422
+    assert (
+        "Input should be a valid integer, unable to parse string as an integer"
+        in response.json()["detail"][0]["msg"]
+    )
 
 
 @pytest.mark.asyncio
@@ -464,6 +485,7 @@ async def test_delete_user_by_id_prevent_delete_self(
 
     response = await client.delete(f"/api/users/{admin_user.id}", headers=auth_headers)
     assert response.status_code == 400
+    assert "You cannot delete your own account" in response.json()["detail"]
 
 
 @pytest.mark.asyncio
@@ -483,10 +505,7 @@ async def test_delete_user_by_id_successful(
     response = await client.delete(f"/api/users/{id_to_delete}", headers=auth_headers)
     assert response.status_code == 204  # Verify the deletion code
 
-    with pytest.raises(
-        ValueError
-    ):  # Checks if trying to get the json of the response would
-        response.json()  # raise an error, which it should
+    assert response.text == ""  # Verify that the response is empty
     # Then verify that it's actually gone
     response = await client.get(f"/api/users/{id_to_delete}", headers=auth_headers)
     assert response.status_code == 404
@@ -548,13 +567,19 @@ async def test_patch_user_status_by_id_requires_auth(
 ):
     """Test that PATCH /api/users/{id}/status requires authentication"""
     status_data = {"user_id": regular_user.id, "is_active": False}
-    response = await client.patch("/api/users/regular_user.id/status", json=status_data)
+    response = await client.patch(
+        f"/api/users/{regular_user.id}/status", json=status_data
+    )
     assert response.status_code == 401
+    assert "Not authenticated" in response.json()["detail"]
 
     response = await client.patch(
-        "/api/users/regular_user.id/status", json=status_data, headers=user_auth_headers
+        f"/api/users/{regular_user.id}/status",
+        json=status_data,
+        headers=user_auth_headers,
     )
     assert response.status_code == 403
+    assert "Access denied. Required role: admin" in response.json()["detail"]
 
 
 @pytest.mark.asyncio
@@ -567,6 +592,7 @@ async def test_patch_user_status_by_id_not_found(
         "/api/users/999999/status", json=status_data, headers=auth_headers
     )
     assert response.status_code == 404
+    assert "not found" in response.json()["detail"].lower()
 
 
 @pytest.mark.asyncio
@@ -579,6 +605,10 @@ async def test_patch_user_status_by_id_not_int(
         "/api/users/eleven/status", json=status_data, headers=auth_headers
     )
     assert response.status_code == 422
+    assert (
+        "Input should be a valid integer, unable to parse string as an integer"
+        in response.json()["detail"][0]["msg"]
+    )
 
 
 @pytest.mark.asyncio
@@ -593,6 +623,7 @@ async def test_patch_user_status_by_id_no_parameters(
         f"/api/users/{id_to_use}/status", headers=auth_headers
     )
     assert response.status_code == 422
+    assert "Field required" in response.json()["detail"][0]["msg"]
 
 
 # @Dr. Sarah, this one isn't super important, but it's good to note that
@@ -611,6 +642,7 @@ async def test_patch_user_status_by_id_bad_parameters(
         f"/api/users/{id_to_use}/status", json=status_data, headers=auth_headers
     )
     assert response.status_code == 422
+    assert "Field required" in response.json()["detail"][0]["msg"]
 
     # Empty String params
     status_data = {"user_id": "", "is_active": False}
@@ -618,12 +650,20 @@ async def test_patch_user_status_by_id_bad_parameters(
         f"/api/users/{id_to_use}/status", json=status_data, headers=auth_headers
     )
     assert response.status_code == 422
+    assert (
+        "Input should be a valid integer, unable to parse string as an integer"
+        in response.json()["detail"][0]["msg"]
+    )
 
     status_data = {"user_id": 55, "is_active": ""}
     response = await client.patch(
         f"/api/users/{id_to_use}/status", json=status_data, headers=auth_headers
     )
     assert response.status_code == 422
+    assert (
+        "Input should be a valid boolean, unable to interpret input"
+        in response.json()["detail"][0]["msg"]
+    )
 
     # Bad type for user_id
     status_data = {"user_id": "eleven", "is_active": False}
@@ -631,6 +671,10 @@ async def test_patch_user_status_by_id_bad_parameters(
         f"/api/users/{id_to_use}/status", json=status_data, headers=auth_headers
     )
     assert response.status_code == 422
+    assert (
+        "Input should be a valid integer, unable to parse string as an integer"
+        in response.json()["detail"][0]["msg"]
+    )
 
     # Bad type for is_active
     status_data = {"user_id": 55, "is_active": "dkgbdsflkjb"}
@@ -638,6 +682,10 @@ async def test_patch_user_status_by_id_bad_parameters(
         f"/api/users/{id_to_use}/status", json=status_data, headers=auth_headers
     )
     assert response.status_code == 422
+    assert (
+        "Input should be a valid boolean, unable to interpret input"
+        in response.json()["detail"][0]["msg"]
+    )
 
 
 # @Dr. Sarah. -- PATCH /api/users/{id}/status - some 'int' and 'String' will convert
@@ -723,6 +771,7 @@ async def test_patch_user_status_by_id_prevent_disable_self(
         f"/api/users/{admin_user.id}/status", json=status_data, headers=auth_headers
     )
     assert response.status_code == 400
+    assert "You cannot disable your own account" in response.json()["detail"]
 
 
 @pytest.mark.asyncio
@@ -785,6 +834,7 @@ async def test_patch_user_role_by_id_requires_auth(
     role_data = {"user_id": regular_user.id, "role": "manager"}
     response = await client.patch(f"/api/users/{regular_user.id}/role", json=role_data)
     assert response.status_code == 401
+    assert "Not authenticated" in response.json()["detail"]
 
     response = await client.patch(
         f"/api/users/{regular_user.id}/role", json=role_data, headers=user_auth_headers
@@ -792,6 +842,7 @@ async def test_patch_user_role_by_id_requires_auth(
     assert (
         response.status_code == 403
     )  # Should fail because a regular user doesn't have permission to do this
+    assert "Access denied. Required role: admin" in response.json()["detail"]
 
 
 @pytest.mark.asyncio
@@ -804,6 +855,7 @@ async def test_patch_user_role_by_id_not_found(
         "/api/users/999999/role", json=role_data, headers=auth_headers
     )
     assert response.status_code == 404
+    assert "not found" in response.json()["detail"].lower()
 
 
 @pytest.mark.asyncio
@@ -817,6 +869,10 @@ async def test_patch_user_role_by_id_not_int(
         "/api/users/eleven/role", json=role_data, headers=auth_headers
     )
     assert response.status_code == 422
+    assert (
+        "Input should be a valid integer, unable to parse string as an integer"
+        in response.json()["detail"][0]["msg"]
+    )
 
 
 @pytest.mark.asyncio
@@ -829,6 +885,7 @@ async def test_patch_user_role_by_id_no_parameters(
 
     response = await client.patch(f"/api/users/{id_to_use}/role", headers=auth_headers)
     assert response.status_code == 422
+    assert "Field required" in response.json()["detail"][0]["msg"]
 
 
 @pytest.mark.asyncio
@@ -845,6 +902,7 @@ async def test_patch_user_role_by_id_bad_parameters(
         f"/api/users/{id_to_use}/role", headers=auth_headers, json=role_data
     )
     assert response.status_code == 422
+    assert "Field required" in response.json()["detail"][0]["msg"]
 
     # Empty Strings
     role_data = {"user_id": "", "role": "manager"}
@@ -852,6 +910,10 @@ async def test_patch_user_role_by_id_bad_parameters(
         f"/api/users/{id_to_use}/role", headers=auth_headers, json=role_data
     )
     assert response.status_code == 422
+    assert (
+        "Input should be a valid integer, unable to parse string as an integer"
+        in response.json()["detail"][0]["msg"]
+    )
     # empty role is handled in the _invalid_role function
 
     # bad type for user_id
@@ -860,6 +922,10 @@ async def test_patch_user_role_by_id_bad_parameters(
         f"/api/users/{id_to_use}/role", headers=auth_headers, json=role_data
     )
     assert response.status_code == 422
+    assert (
+        "Input should be a valid integer, unable to parse string as an integer"
+        in response.json()["detail"][0]["msg"]
+    )
 
     # bad type for role, as in integer etc
     role_data = {"user_id": id_to_use, "role": 7983298}
@@ -867,6 +933,7 @@ async def test_patch_user_role_by_id_bad_parameters(
         f"/api/users/{id_to_use}/role", headers=auth_headers, json=role_data
     )
     assert response.status_code == 422
+    assert "Input should be a valid string" in response.json()["detail"][0]["msg"]
 
 
 @pytest.mark.asyncio
@@ -882,12 +949,20 @@ async def test_patch_user_role_by_id_invalid_role(
         f"/api/users/{id_to_use}/role", headers=auth_headers, json=role_data
     )
     assert response.status_code == 400
+    assert (
+        "Invalid role. Must be one of: admin, manager, user"
+        in response.json()["detail"]
+    )
 
     role_data = {"user_id": id_to_use, "role": ""}
     response = await client.patch(
         f"/api/users/{id_to_use}/role", headers=auth_headers, json=role_data
     )
     assert response.status_code == 400
+    assert (
+        "Invalid role. Must be one of: admin, manager, user"
+        in response.json()["detail"]
+    )
 
 
 @pytest.mark.asyncio
@@ -917,6 +992,7 @@ async def test_patch_user_role_by_id_prevent_change_own_role(
         f"/api/users/{admin_user.id}/role", headers=auth_headers, json=role_data
     )
     assert response.status_code == 400
+    assert "You cannot change your own role" in response.json()["detail"]
 
 
 @pytest.mark.asyncio
@@ -963,6 +1039,7 @@ async def test_patch_user_role_to_manager_by_id_successful(
     # Test they can now make calls to things like GET /api/users/{id}
     response = await client.get("/api/users/1", headers=user_auth_headers)
     assert response.status_code == 403  # I guess managers can make this call
+    assert "Access denied. Required role: admin" in response.json()["detail"]
 
 
 @pytest.mark.asyncio
@@ -1009,15 +1086,6 @@ async def test_patch_user_role_to_admin_by_id_successful(
     # Test they can now make calls to things like GET /api/users/{id}
     response = await client.get("/api/users/1", headers=user_auth_headers)
     assert response.status_code == 200
-
-
-# @Dr. Sarah -- Fixtures Issue
-# The comments try to explain it, but basically once the regular_user is promoted
-# The user_auth_header *does* get upgraded to represent the fact that it's now an
-# admin (verified by trying to GET a protected route). But somehow the fixture
-# makes the two auth_headers come across as the SAME auth_header. Essentially,
-# it causes all admins to be seen as the same admin, so the endpoint rejects it
-# because you're not supposed to be able to demote yourself.
 
 
 @pytest.mark.asyncio
