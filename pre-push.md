@@ -49,3 +49,25 @@ git rebase --abort
 Make sure that the "base repository" is **rsciaudo/tma-starter-app** (it usually doesn't default to this, so make sure you check), then choose the desired branch for the "compare:" option.
 
 Please reference Dr. Sarah's [PR Description Template](https://csci373-apps.github.io/spring2026/resources/howto-03-git-workflow) for a guide to writing good PRs.
+
+ONLY do "rebase and merge" after your PR is approved - we don't want merge commits!
+
+### Squash Commits Locally for PR
+In order to simplify the commit history, your PR should contain a single commit.
+To squash the commits on your branch, do the folllowing:
+
+```
+# Make sure you're on your feature branch
+git checkout your-branch
+
+# N is the number of commits you made on this branch
+git reset --soft HEAD~N
+
+# Make a new commit that describes the feature you implemented
+git commit -m "[message goes here]"
+
+# Force push your branch
+git push --force
+```
+
+Now when you make your PR, there should only be a single commit!
