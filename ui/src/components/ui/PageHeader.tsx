@@ -131,9 +131,8 @@ export default function PageHeader({
                                     <Group gap="sm" align="center" wrap="wrap">
                                         {icon && (
                                             <div
+                                                className="flex items-center"
                                                 style={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
                                                     color: textColor,
                                                 }}
                                             >
@@ -286,12 +285,7 @@ export default function PageHeader({
                             >
                                 <Group gap="sm" align="center" wrap="wrap">
                                     {icon && (
-                                        <div
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                            }}
-                                        >
+                                        <div className="flex items-center">
                                             {isValidElement(icon)
                                                 ? icon
                                                 : createElement(

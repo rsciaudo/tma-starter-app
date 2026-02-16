@@ -1,3 +1,10 @@
+@import 'tailwindcss';
+
+/* Configure Tailwind v4 - scan source files for classes */
+/* Paths are relative to the project root (ui/) */
+@source "../src/**/*.{js,ts,jsx,tsx}";
+@source "../index.html";
+
 /* Base styles - Mantine handles most of this, but we keep minimal overrides */
 :root {
     --app-background-color: #f9f7f5;
@@ -17,5 +24,6 @@ html {
     scroll-behavior: smooth;
 }
 
-/* Remove conflicting styles that override Mantine components */
-/* Mantine components handle their own styling */
+/* Strategy: Use Tailwind for layout utilities (flex, grid, positioning, spacing)
+   Use Mantine for components (buttons, cards, badges, etc.) and theming
+   This prevents conflicts while giving us the best of both worlds */

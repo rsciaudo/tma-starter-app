@@ -29,8 +29,11 @@ module.exports = {
             },
         },
         {
-            // For config files, don't use TypeScript parser project
-            files: ['vite.config.ts', '*.config.ts', '*.config.js'],
+            // For config files, don't use TypeScript parser project, and enable Node globals (module/require/process)
+            files: ['vite.config.ts', '*.config.ts', '*.config.js', '*.config.cjs', '*.config.mjs'],
+            env: {
+                node: true,
+            },
             parserOptions: {
                 project: null,
             },
