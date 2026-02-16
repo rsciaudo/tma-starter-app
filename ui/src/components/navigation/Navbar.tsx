@@ -54,42 +54,34 @@ export default function Navbar() {
             zIndex={1001}
         >
             <Menu.Target>
-                <UnstyledButton style={{ minWidth: 0 }}>
+                <UnstyledButton className="min-w-0">
                     <Group
                         gap={isMobile ? 'xs' : 'sm'}
                         wrap="nowrap"
-                        style={{ minWidth: 0 }}
+                        className="min-w-0"
                     >
                         <Avatar
                             color="primary"
                             radius="xl"
                             size="sm"
-                            style={{ flexShrink: 0 }}
+                            className="flex-shrink-0"
                         >
                             {userInfo?.username?.charAt(0).toUpperCase() || 'U'}
                         </Avatar>
                         {!isMobile && (
-                            <Stack gap={0} style={{ minWidth: 0, flex: 1 }}>
+                            <Stack gap={0} className="min-w-0 flex-1">
                                 <Group gap="xs" align="center" wrap="nowrap">
                                     <Text
                                         size="sm"
                                         fw={500}
-                                        style={{
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                            whiteSpace: 'nowrap',
-                                        }}
+                                        className="overflow-hidden text-ellipsis whitespace-nowrap"
                                     >
                                         {userInfo?.username || 'User'}
                                     </Text>
                                 </Group>
                                 <Text
                                     size="xs"
-                                    style={{
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap',
-                                    }}
+                                    className="overflow-hidden text-ellipsis whitespace-nowrap"
                                 >
                                     {userInfo?.role?.name || 'user'}
                                 </Text>
@@ -98,7 +90,7 @@ export default function Navbar() {
                         {!isMobile && (
                             <IconChevronDown
                                 size={16}
-                                style={{ flexShrink: 0 }}
+                                className="flex-shrink-0"
                             />
                         )}
                     </Group>
@@ -123,16 +115,9 @@ export default function Navbar() {
 
     return (
         <Box
+            className="fixed top-0 left-0 right-0 w-full z-[1000] border-b border-[var(--mantine-color-gray-2)] shadow-xs"
             style={{
-                position: 'fixed',
                 backgroundColor: 'var(--mantine-color-white)',
-                top: 0,
-                left: 0,
-                right: 0,
-                width: '100%',
-                zIndex: 1000,
-                borderBottom: '1px solid var(--mantine-color-gray-2)',
-                boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
             }}
         >
             <Container
@@ -152,7 +137,7 @@ export default function Navbar() {
                             opened={drawerOpened}
                             onClick={drawerOpened ? closeDrawer : openDrawer}
                             size="sm"
-                            style={{ flexShrink: 0 }}
+                            className="flex-shrink-0"
                         />
                     ) : (
                         <Text
@@ -161,14 +146,14 @@ export default function Navbar() {
                             component={Link}
                             to="/"
                             c="pink.6"
-                            style={{ textDecoration: 'none', flexShrink: 0 }}
+                            className="no-underline flex-shrink-0"
                         >
                             Logo
                         </Text>
                     )}
 
                     {/* User menu (always visible) */}
-                    <Box style={{ flexShrink: 0, minWidth: 0 }}>
+                    <Box className="flex-shrink-0 min-w-0">
                         {isMobile ? (
                             renderUserMenu()
                         ) : (

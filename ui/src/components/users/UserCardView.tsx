@@ -44,29 +44,23 @@ export default function UserCardView({
                         padding={0}
                         radius="md"
                         withBorder
-                        style={{ cursor: 'pointer', overflow: 'hidden' }}
+                        className="cursor-pointer overflow-hidden"
                         onClick={() => onUserClick(user)}
                     >
                         {isMobile ? (
                             // Mobile: Stack vertically
                             <Stack gap={0}>
                                 <Box
+                                    className="w-full relative overflow-hidden"
                                     style={{
-                                        width: '100%',
                                         height: isNarrow ? '170px' : '200px',
-                                        position: 'relative',
-                                        overflow: 'hidden',
                                     }}
                                 >
                                     <Avatar
                                         src={avatarUrl || undefined}
                                         size="100%"
                                         radius={0}
-                                        style={{
-                                            width: '100%',
-                                            height: '100%',
-                                            borderRadius: 0,
-                                        }}
+                                        className="w-full h-full rounded-none"
                                     >
                                         <IconUser size={isNarrow ? 60 : 80} />
                                     </Avatar>
@@ -77,30 +71,23 @@ export default function UserCardView({
                                         align="flex-start"
                                         wrap="wrap"
                                     >
-                                        <div style={{ minWidth: 0, flex: 1 }}>
+                                        <div className="min-w-0 flex-1">
                                             <Text
                                                 fw={500}
                                                 size={isNarrow ? 'md' : 'lg'}
-                                                style={{
-                                                    overflow: 'hidden',
-                                                    textOverflow: 'ellipsis',
-                                                    whiteSpace: 'nowrap',
-                                                }}
+                                                className="overflow-hidden text-ellipsis whitespace-nowrap"
                                             >
                                                 {user.username}
                                             </Text>
                                             <Text
                                                 size="sm"
-                                                style={{
-                                                    overflow: 'hidden',
-                                                    textOverflow: 'ellipsis',
-                                                    whiteSpace: 'nowrap',
-                                                }}
+                                                className="overflow-hidden text-ellipsis whitespace-nowrap"
                                             >
                                                 {user.email}
                                             </Text>
                                         </div>
                                         <Badge
+                                            className="flex-shrink-0"
                                             style={{
                                                 backgroundColor:
                                                     getRoleBadgeColor(
@@ -109,7 +96,6 @@ export default function UserCardView({
                                                     ),
                                                 color: designTokens.roles
                                                     .textOnColored,
-                                                flexShrink: 0,
                                             }}
                                             variant="light"
                                         >
@@ -159,29 +145,13 @@ export default function UserCardView({
                             </Stack>
                         ) : (
                             // Desktop: Horizontal layout
-                            <Group
-                                gap={0}
-                                align="stretch"
-                                style={{ height: '100%' }}
-                            >
-                                <Box
-                                    style={{
-                                        width: '100px',
-                                        height: '100%',
-                                        position: 'relative',
-                                        overflow: 'hidden',
-                                        flexShrink: 0,
-                                    }}
-                                >
+                            <Group gap={0} align="stretch" className="h-full">
+                                <Box className="w-[100px] h-full relative overflow-hidden flex-shrink-0">
                                     <Avatar
                                         src={avatarUrl || undefined}
                                         size="100%"
                                         radius={0}
-                                        style={{
-                                            width: '100%',
-                                            height: '100%',
-                                            borderRadius: 0,
-                                        }}
+                                        className="w-full h-full rounded-none"
                                     >
                                         <IconUser size={80} />
                                     </Avatar>
@@ -189,29 +159,26 @@ export default function UserCardView({
                                 <Stack
                                     gap="sm"
                                     p="md"
-                                    style={{ flex: 1, minWidth: 0 }}
+                                    className="flex-1 min-w-0"
                                 >
                                     <Group
                                         justify="space-between"
                                         align="flex-start"
                                         wrap="wrap"
                                     >
-                                        <div style={{ minWidth: 0, flex: 1 }}>
+                                        <div className="min-w-0 flex-1">
                                             <Text fw={500} size="lg">
                                                 {user.username}
                                             </Text>
                                             <Text
                                                 size="sm"
-                                                style={{
-                                                    overflow: 'hidden',
-                                                    textOverflow: 'ellipsis',
-                                                    whiteSpace: 'nowrap',
-                                                }}
+                                                className="overflow-hidden text-ellipsis whitespace-nowrap"
                                             >
                                                 {user.email}
                                             </Text>
                                         </div>
                                         <Badge
+                                            className="flex-shrink-0"
                                             style={{
                                                 backgroundColor:
                                                     getRoleBadgeColor(
@@ -220,7 +187,6 @@ export default function UserCardView({
                                                     ),
                                                 color: designTokens.roles
                                                     .textOnColored,
-                                                flexShrink: 0,
                                             }}
                                             variant="light"
                                         >
