@@ -9,6 +9,8 @@ import LoginPage from './pages/auth/LoginPage.tsx';
 // Course pages
 import CoursesPage from './pages/courses/CoursesPage.tsx';
 import CourseDetailPage from './pages/courses/CourseDetailPage.tsx';
+import CreateModulePage from './pages/courses/CreateModulePage.tsx';
+import ModuleDetailPage from './pages/courses/ModuleDetailPage.tsx';
 
 // User pages
 import UsersPage from './pages/users/UsersPage.tsx';
@@ -66,6 +68,26 @@ export default function App() {
                                 <ProtectedRoute requiredRole="admin">
                                     <Layout>
                                         <CourseDetailPage />
+                                    </Layout>
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/dashboard/courses/:courseId/modules/new"
+                            element={
+                                <ProtectedRoute requiredRole="admin">
+                                    <Layout>
+                                        <CreateModulePage />
+                                    </Layout>
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/dashboard/courses/:courseId/modules/:moduleId"
+                            element={
+                                <ProtectedRoute requiredRole="admin">
+                                    <Layout>
+                                        <ModuleDetailPage />
                                     </Layout>
                                 </ProtectedRoute>
                             }

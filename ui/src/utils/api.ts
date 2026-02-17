@@ -14,6 +14,10 @@ import type {
     CourseDetail,
     CourseCreate,
     CourseUpdate,
+    Module,
+    ModuleCreate,
+    ModuleUpdate,
+    ModuleDetail,
 } from '../types/api.js';
 
 /**
@@ -465,4 +469,109 @@ export async function getGroupCourses(
         headers: getAuthHeaders(),
     });
     return handleResponse<Course[]>(response) as Promise<Course[]>;
+}
+
+/**
+ * Get all modules in a course
+ * @param courseId - Course ID
+ * @param apiUrl - Base API URL
+ * @returns Array of modules
+ */
+export async function getCourseModules(
+    courseId: number,
+    apiUrl = getApiUrl()
+): Promise<Module[]> {
+    const response = await fetch(`${apiUrl}/courses/${courseId}/modules`, {
+        headers: getAuthHeaders(),
+    });
+    return handleResponse<Module[]>(response) as Promise<Module[]>;
+}
+
+// ============================================================================
+// MODULE API Functions
+// ============================================================================
+
+/**
+ * Get all modules
+ * @param apiUrl - Base API URL
+ * @returns Array of modules
+ */
+export async function getModules(apiUrl = getApiUrl()): Promise<Module[]> {
+    const response = await fetch(`${apiUrl}/modules`, {
+        headers: getAuthHeaders(),
+    });
+    return handleResponse<Module[]>(response) as Promise<Module[]>;
+}
+
+/**
+ * Get a single module by ID
+ * @param moduleId - Module ID
+ * @param apiUrl - Base API URL
+ * @returns Module object WITHOUT posts
+ */
+export async function getModule(
+    moduleId: number,
+    apiUrl = getApiUrl()
+): Promise<ModuleDetail> {
+    const response = await fetch(`${apiUrl}/modules/${moduleId}`, {
+        headers: getAuthHeaders(),
+    });
+    return handleResponse<ModuleDetail>(response) as Promise<ModuleDetail>;
+}
+
+/**
+ * Create a new module
+ * @param moduleData - Module data (title, description)
+ * @param apiUrl - Base API URL
+ * @returns Created module object
+ */
+export async function createModule(
+    moduleData: ModuleCreate,
+    apiUrl = getApiUrl()
+): Promise<Module> {
+    const response = await fetch(`${apiUrl}/modules`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(moduleData),
+    });
+    return handleResponse<Module>(response) as Promise<Module>;
+}
+
+/**
+ * Update a module
+ * @param moduleId - Module ID
+ * @param moduleData - Partial module data to update
+ * @param apiUrl - Base API URL
+ * @returns Updated module object
+ */
+export async function patchModule(
+    moduleId: number,
+    moduleData: ModuleUpdate,
+    apiUrl = getApiUrl()
+): Promise<Module> {
+    const response = await fetch(`${apiUrl}/modules/${moduleId}`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(moduleData),
+    });
+    return handleResponse<Module>(response) as Promise<Module>;
+}
+
+/**
+ * Delete a module
+ * @param moduleId - Module ID
+ * @param apiUrl - Base API URL
+ * @returns Promise<void>
+ */
+export async function deleteModule(
+    moduleId: number,
+    apiUrl = getApiUrl()
+): Promise<void> {
+    const response = await fetch(`${apiUrl}/modules/${moduleId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+        throw new Error(`Failed to delete module: ${response.statusText}`);
+    }
 }
