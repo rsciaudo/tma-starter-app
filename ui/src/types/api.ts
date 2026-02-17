@@ -83,10 +83,6 @@ export interface Course {
     module_count?: number; // Optional, may be added by backend in some responses
 }
 
-export interface CourseDetail extends Course {
-    // Note: Modules will be added by students
-}
-
 export interface CourseCreate {
     title: string;
     description?: string | null;
@@ -95,6 +91,18 @@ export interface CourseCreate {
 export interface CourseUpdate {
     title?: string | null;
     description?: string | null;
+}
+
+export interface CourseModule {
+    module_id: number;
+    module_title: string;
+    module_description?: string | null;
+    module_color?: string | null;
+    ordering: number;
+}
+
+export interface CourseDetail extends Course {
+    modules: CourseModule[];
 }
 
 // ============================================================================
@@ -133,4 +141,31 @@ export interface GroupCreate {
 export interface GroupUpdate {
     name?: string | null;
     description?: string | null;
+}
+
+// ============================================================================
+// Module Types
+// ============================================================================
+
+export interface Module {
+    id: number;
+    title: string;
+    description?: string | null;
+    created_at: string;
+    updated_at: string;
+    color?: string | null;
+}
+
+export interface ModuleCreate {
+    title: string;
+    description?: string | null;
+}
+
+export interface ModuleUpdate {
+    title?: string | null;
+    description?: string | null;
+}
+
+export interface ModuleDetail extends Module {
+    // Requires implementation of posts
 }
