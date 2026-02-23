@@ -521,7 +521,7 @@ export async function getModule(
 
 /**
  * Create a new module
- * @param moduleData - Module data (title, description)
+ * @param moduleData - Module data (title, description, color)
  * @param apiUrl - Base API URL
  * @returns Created module object
  */
