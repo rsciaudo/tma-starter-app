@@ -203,7 +203,13 @@ async def test_create_module_success_admin_201(client: AsyncClient, auth_headers
     """Admin can POST /api/modules with valid data"""
     resp = await client.post(
         "/api/modules",
-        json={"module_data": {"title": "Test Module", "description": "test"}},
+        json={
+            "module_data": {
+                "title": "Test Module",
+                "description": "test",
+                "color": "#0000FF",
+            }
+        },
         headers=auth_headers,
     )
     assert resp.status_code == 201, resp.text
@@ -211,6 +217,7 @@ async def test_create_module_success_admin_201(client: AsyncClient, auth_headers
     assert_module_shape(data)
     assert data["title"] == "Test Module"
     assert data["description"] == "test"
+    assert data["color"] == "#0000FF"
 
 
 # PATCH /api/modules/{id} (update module)

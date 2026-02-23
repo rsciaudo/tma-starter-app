@@ -13,6 +13,7 @@ class ModuleBase(BaseModel):
 
     title: str
     description: Optional[str] = None
+    color: Optional[str] = None
 
 
 class ModuleCreate(ModuleBase):

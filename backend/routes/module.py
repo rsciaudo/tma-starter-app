@@ -178,6 +178,7 @@ async def create_module(
             description=(
                 module_data.description.strip() if module_data.description else None
             ),
+            color=(module_data.color.strip() if module_data.color else None),
         )
 
         db.add(new_module)
@@ -209,7 +210,7 @@ async def create_module(
             "description": new_module.description,
             "created_at": new_module.created_at,
             "updated_at": new_module.updated_at,
-            # add color field
+            "color": new_module.color,
         }
     except Exception as e:
         await db.rollback()
