@@ -110,7 +110,17 @@ async def get_course(
         "description": course.description,
         "created_at": course.created_at,
         "updated_at": course.updated_at,
-        "modules": course.modules,
+        "module_count": len(course.course_modules),
+        "modules": [
+            {
+                "module_id": cm.module_id,
+                "module_title": cm.module.title if cm.module else "",
+                "module_description": cm.module.description if cm.module else None,
+                "module_color": cm.module.color if cm.module else None,
+                "ordering": cm.ordering,
+            }
+            for cm in course.course_modules
+        ],
     }
 
 
