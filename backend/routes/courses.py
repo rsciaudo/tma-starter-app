@@ -7,10 +7,11 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Security, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 
 from auth import get_current_active_user, require_admin, security_scheme
 from database import get_db
-from models import Course, CourseGroup, UserGroup
+from models import Course, CourseGroup, CourseModule, Module, UserGroup
 from schemas.course import (
     CourseCreate,
     CourseDetailResponse,
@@ -91,7 +92,11 @@ async def get_course(
     """
     Get a single course by ID. Modules will be implemented by students.
     """
-    result = await db.execute(select(Course).where(Course.id == course_id))
+    result = await db.execute(
+        select(Course)
+        .options(selectinload(Course.course_modules).selectinload(CourseModule.module))
+        .where(Course.id == course_id)
+    )
     course = result.scalar_one_or_none()
 
     if course is None:
@@ -105,7 +110,7 @@ async def get_course(
         "description": course.description,
         "created_at": course.created_at,
         "updated_at": course.updated_at,
-        "modules": [],  # Modules will be implemented by students
+        "modules": course.modules,
     }
 
 
@@ -224,3 +229,57 @@ async def delete_course(
     await db.delete(course)
     await db.commit()
     return None
+
+
+@router.post(
+    "/{course_id}/modules/{module_id}",
+    status_code=201,
+    dependencies=[Security(security_scheme)],
+)
+async def add_module_to_course(
+    course_id: int,
+    module_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    # Make sure the course exists
+    result = await db.execute(select(Course).where(Course.id == course_id))
+    course = result.scalar_one_or_none()
+
+    if course is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Course with ID {course_id} not found",
+        )
+
+    # Make sure the module exists
+    result = await db.execute(select(Module).where(Module.id == module_id))
+    module = result.scalar_one_or_none()
+
+    if module is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Module with ID {module_id} not found",
+        )
+
+    # Make sure the module is not already in the course
+    result = await db.execute(
+        select(CourseModule).where(
+            CourseModule.course_id == course_id, CourseModule.module_id == module_id
+        )
+    )
+    membership = result.scalar_one_or_none()
+
+    if membership:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Module {module_id} is already in course {course_id}",
+        )
+
+    # Add the module to the course
+    membership = CourseModule(course_id=course_id, module_id=module_id)
+    db.add(membership)
+    await db.commit()
+
+    return {
+        "message": f"Module {module_id} added to course {course_id}",
+    }

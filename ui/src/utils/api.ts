@@ -487,6 +487,29 @@ export async function getCourseModules(
     return handleResponse<Module[]>(response) as Promise<Module[]>;
 }
 
+/**
+ * Add a module to a course
+ * @param courseId - Course ID
+ * @param moduleId - Module ID
+ * @param apiUrl - Base API URL
+ * @returns Response object
+ */
+export async function addModuleToCourse(
+    courseId: number,
+    moduleId: number,
+    apiUrl = getApiUrl()
+): Promise<unknown> {
+    const response = await fetch(
+        `${apiUrl}/courses/${courseId}/modules/${moduleId}`,
+        {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({}),
+        }
+    );
+    return handleResponse(response);
+}
+
 // ============================================================================
 // MODULE API Functions
 // ============================================================================

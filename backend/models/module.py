@@ -5,6 +5,7 @@ Role model for modules
 from datetime import datetime
 
 from sqlalchemy import TIMESTAMP, Column, Integer, String, Text
+from sqlalchemy.ext.associationproxy import association_proxy
 
 from .base import Base
 
@@ -22,5 +23,5 @@ class Module(Base):
     )
     color = Column(String(200))
 
-    # Note: Relationships to Course and Post will be handled in the association tables
-    # Relationships to users will be handled in ...
+    # Many-to-Many Joins
+    courses = association_proxy("course_modules", "courses")
