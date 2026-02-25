@@ -120,7 +120,8 @@ async def get_course(
                 "ordering": cm.ordering,
             }
             for cm in course.course_modules
-        ],
+        ]
+        or [],
     }
 
 
