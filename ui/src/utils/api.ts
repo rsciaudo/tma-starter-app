@@ -575,7 +575,10 @@ export async function patchModule(
     const response = await fetch(`${apiUrl}/modules/${moduleId}`, {
         method: 'PATCH',
         headers: getAuthHeaders(),
-        body: JSON.stringify(moduleData),
+        body: JSON.stringify({
+            module_data: moduleData,
+            module_posts: [],
+        }),
     });
     return handleResponse<Module>(response) as Promise<Module>;
 }
