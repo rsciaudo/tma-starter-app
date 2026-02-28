@@ -1,0 +1,8 @@
+module_title,post_title,ordering
+TestModuleAlpha,TestPost1,1
+TestModuleAlpha,TestPost2,2
+TestModuleAlpha,TestPost3,3
+TestModuleBeta,TestPost4,1
+TestModuleBeta,TestPost5,2
+TestModuleBeta,TestPost6,3
+TestModuleBeta,TestPost7,4
