@@ -9,11 +9,18 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Query, Security, st
 from sqlalchemy import delete, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 
 from auth import get_current_active_user, require_admin, security_scheme
 from database import get_db
 from models import CourseModule, Module, ModulePost, Post, UserModule
-from schemas.module import ModuleCreate, ModuleResponse, ModuleUpdate, PostInModule
+from schemas.module import (
+    ModuleCreate,
+    ModuleDetailResponse,
+    ModuleResponse,
+    ModuleUpdate,
+    PostInModule,
+)
 
 router = APIRouter(prefix="/modules", tags=["modules"])
 
@@ -97,7 +104,7 @@ async def get_all_modules(
 
 @router.get(
     "/{module_id}",
-    response_model=ModuleResponse,
+    response_model=ModuleDetailResponse,
     dependencies=[Security(security_scheme)],
 )
 async def get_module(
@@ -110,7 +117,12 @@ async def get_module(
     """
     # show any module if user is admin
     if current_user.role.name == "admin":
-        result = await db.execute(select(Module).where(Module.id == module_id))
+        result = await db.execute(
+            select(Module)
+            .options(selectinload(Module.module_posts).selectinload(ModulePost.post))
+            .where(Module.id == module_id)
+        )
+
         module = result.scalar_one_or_none()
 
         if module is None:
@@ -129,6 +141,7 @@ async def get_module(
     else:
         result = await db.execute(
             select(Module)
+            .options(selectinload(Module.module_posts).selectinload(ModulePost.post))
             .join(UserModule)
             .where(
                 UserModule.user_id == current_user.id,
@@ -149,6 +162,22 @@ async def get_module(
             "description": module.description,
             "created_at": module.created_at,
             "updated_at": module.updated_at,
+            "posts": [
+                {
+                    "post_id": mp.post_id,
+                    "post_title": mp.post.title if mp.post else "",
+                    "post_type": mp.post.type if mp.post else None,
+                    "post_text": mp.post.text if mp.post else None,
+                    "post_image": mp.post.image if mp.post else None,
+                    "post_file_url": mp.post.file_url if mp.post else None,
+                    "post_file_name": mp.post.file_name if mp.post else None,
+                    "post_video_url": mp.post.video_url if mp.post else None,
+                    "post_video_name": mp.post.video_name if mp.post else None,
+                    "ordering": mp.ordering,
+                }
+                for mp in module.module_posts
+            ]
+            or [],
         }
 
 

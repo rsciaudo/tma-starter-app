@@ -10,7 +10,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import ProtectedRoute from '../../../components/ProtectedRoute';
 import { getCourseDetail } from '../../../services/courses';
-import { CourseDetail, Module } from '../../../types';
+import { CourseDetail, CourseModule } from '../../../types';
 import { designTokens } from '../../../theme';
 
 export default function CourseDetailScreen() {
@@ -105,10 +105,12 @@ export default function CourseDetailScreen() {
                                 ) : (
                                     course.modules
                                         .sort(
-                                            (a: Module, b: Module) =>
-                                                a.ordering - b.ordering
+                                            (
+                                                a: CourseModule,
+                                                b: CourseModule
+                                            ) => a.ordering - b.ordering
                                         )
-                                        .map((module: Module) => (
+                                        .map((module: CourseModule) => (
                                             <Card
                                                 key={module.module_id}
                                                 style={styles.card}
