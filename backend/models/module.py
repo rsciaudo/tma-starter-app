@@ -25,3 +25,5 @@ class Module(Base):
 
     # Many-to-Many Joins
     courses = association_proxy("course_modules", "courses")
+    posts = association_proxy("module_posts", "posts")
+    users = association_proxy("user_modules", "users")

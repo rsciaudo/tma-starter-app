@@ -14,15 +14,20 @@ class Post(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(200), nullable=False, index=True)
-    description = Column(Text, nullable=True)
+    type = Column(Text, nullable=True)
+    text = Column(Text, nullable=True)
     created_at = Column(TIMESTAMP, default=datetime.utcnow, nullable=False)
     updated_at = Column(
         TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
     )
 
-    # Finer details of specific posts (refered to as "activities") to be handled
-    # in subtables representing the individual types
+    # Generic Post fields
+    image = Column(Text, nullable=True)
 
-    # Note: Relationship to Module and individal Activities will be hadled in
-    # their association tables
-    # Relationship to users will be handled in ...
+    # Attachment Post fields
+    file_url = Column(Text, nullable=True)
+    file_name = Column(Text, nullable=True)
+
+    # Video Post fields
+    video_url = Column(Text, nullable=True)
+    video_name = Column(Text, nullable=True)

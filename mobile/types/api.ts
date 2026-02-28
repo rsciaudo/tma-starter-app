@@ -66,30 +66,16 @@ export interface Course {
     updated_at: string;
 }
 
-export interface Module {
+export interface CourseModule {
     module_id: number;
     module_title: string;
     module_description?: string | null;
     module_color?: string | null;
     ordering: number;
-    course_id: number;
-    created_at: string;
-    updated_at: string;
-}
-
-export interface Post {
-    id: number;
-    title: string;
-    content?: string | null;
-    post_type: string;
-    module_id: number;
-    ordering: number;
-    created_at: string;
-    updated_at: string;
 }
 
 export interface CourseDetail extends Course {
-    modules?: Module[];
+    modules: CourseModule[];
 }
 
 // ============================================================================
@@ -134,4 +120,57 @@ export interface CourseGroup {
     date_assigned: string;
 }
 
-// Module, Post, Quiz, and Progress types removed - these will be implemented by students
+// ============================================================================
+// Module Types
+// ============================================================================
+
+export interface Module {
+    id: number;
+    title: string;
+    description?: string | null;
+    created_at: string;
+    updated_at: string;
+    color?: string | null;
+}
+
+export interface ModulePost {
+    post_id: number;
+    post_title: string;
+    post_type?: string | null;
+    post_text?: string | null;
+    post_image?: string | null;
+    post_file_url?: string | null;
+    post_file_name?: string | null;
+    post_video_url?: string | null;
+    post_video_name?: string | null;
+    ordering: number;
+}
+
+export interface ModuleDetail extends Module {
+    posts: ModulePost[];
+}
+
+// ============================================================================
+// Post Types
+// ============================================================================
+
+export interface Post {
+    id: number;
+    title: string;
+    type?: string | null;
+    text?: string | null;
+}
+
+export interface PostGeneric extends Post {
+    image?: string | null;
+}
+
+export interface PostAttachment extends Post {
+    file_url?: string | null;
+    file_name?: string | null;
+}
+
+export interface PostVideo extends Post {
+    video_url?: string | null;
+    video_name?: string | null;
+}

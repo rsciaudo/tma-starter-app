@@ -46,7 +46,14 @@ class PostInModule(BaseModel):
 
     post_id: int
     post_title: str
-    post_description: Optional[str]
+    post_type: Optional[str]
+    post_text: Optional[str]
+    post_image: Optional[str]
+    post_file_url: Optional[str]
+    post_file_name: Optional[str]
+    post_video_url: Optional[str]
+    post_video_name: Optional[str]
+    ordering: int
 
 
 class ModuleDetailResponse(ModuleResponse):
