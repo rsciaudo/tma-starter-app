@@ -18,6 +18,7 @@ from pathlib import Path
 # Add parent directory to path to import modules
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import populate_helper  # noqa: E402
 from dotenv import load_dotenv  # noqa: E402
 from faker import Faker  # noqa: E402
 from sqlalchemy import text  # noqa: E402
@@ -29,11 +30,15 @@ from auth import get_password_hash  # noqa: E402
 from database.migrations import run_migrations, seed_initial_data  # noqa: E402
 
 # Import all models to ensure they're registered with Base.metadata
-from models import (  # noqa: E402
+from models import (  # noqa: E402, F401
     Base,
     Course,
     CourseGroup,
+    CourseModule,
     Group,
+    Module,
+    ModulePost,
+    Post,
     Role,
     User,
     UserGroup,
@@ -451,6 +456,11 @@ async def main(reset: bool = False):
             user_groups_data = load_csv(SAMPLE_DATA_DIR / "user_groups.csv")
             course_groups_data = load_csv(SAMPLE_DATA_DIR / "course_groups.csv")
 
+            modules_data = load_csv(SAMPLE_DATA_DIR / "modules.csv")
+            posts_data = load_csv(SAMPLE_DATA_DIR / "posts.csv")
+            course_modules_data = load_csv(SAMPLE_DATA_DIR / "course_modules.csv")
+            module_posts_data = load_csv(SAMPLE_DATA_DIR / "module_posts.csv")
+
             # Count how many regular users are already in CSV
             regular_users_in_csv = sum(
                 1 for u in users_data if u.get("role", "user").lower() != "admin"
@@ -472,6 +482,9 @@ async def main(reset: bool = False):
             users_lookup = {}
             groups_lookup = {}
             courses_lookup = {}
+
+            modules_lookup = {}
+            posts_lookup = {}
 
             # Create users
             print("\n👤 Creating users...")
@@ -536,6 +549,26 @@ async def main(reset: bool = False):
                 print(f"   ✅ Created course: {course.title}")
 
             await db.commit()
+
+            # Create modules
+            for module_data in modules_data:
+                module = await populate_helper.create_module_from_csv(db, module_data)
+                modules_lookup[module.title] = module
+
+            await db.commit()
+
+            for module in modules_lookup.values():
+                await db.refresh(module)
+
+            # Create posts
+            for post_data in posts_data:
+                post = await populate_helper.create_post_from_csv(db, post_data)
+                posts_lookup[post.title] = post
+
+            await db.commit()
+
+            for post in posts_lookup.values():
+                await db.refresh(post)
 
             # Add users to groups (from CSV and auto-generated)
             print("\n🔗 Adding users to groups...")
@@ -616,6 +649,24 @@ async def main(reset: bool = False):
                     f"   ✅ Assigned '{course.title}' to '{group.name}' "
                     f"(ordering={ordering})"
                 )
+
+            await db.commit()
+
+            # Add modules to courses
+            for rel_data in course_modules_data:
+                course = courses_lookup[rel_data["course_title"]]
+                module = modules_lookup[rel_data["module_title"]]
+                ordering = int(rel_data["ordering"])
+                await populate_helper.add_module_to_course(db, course, module, ordering)
+
+            await db.commit()
+
+            # Add posts to modules
+            for rel_data in module_posts_data:
+                module = modules_lookup[rel_data["module_title"]]
+                post = posts_lookup[rel_data["post_title"]]
+                ordering = int(rel_data["ordering"])
+                await populate_helper.add_post_to_module(db, module, post, ordering)
 
             await db.commit()
 
