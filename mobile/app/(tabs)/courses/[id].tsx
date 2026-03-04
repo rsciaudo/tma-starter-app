@@ -6,17 +6,20 @@ import {
     ActivityIndicator,
     Snackbar,
     Appbar,
+    useTheme,
 } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import ProtectedRoute from '../../../components/ProtectedRoute';
 import { getCourseDetail } from '../../../services/courses';
 import { CourseDetail, CourseModule } from '../../../types';
 import { designTokens } from '../../../theme';
+import ModuleCard from '../../../components/modules/ModuleCard';
 
 export default function CourseDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
     const courseId = parseInt(id || '0', 10);
+    const theme = useTheme();
 
     const {
         data: course,
@@ -40,9 +43,16 @@ export default function CourseDetailScreen() {
 
     return (
         <ProtectedRoute>
-            <View style={styles.container}>
+            <View
+                style={[
+                    styles.container,
+                    { backgroundColor: theme.colors.background },
+                ]}
+            >
                 <Appbar.Header>
-                    <Appbar.BackAction onPress={() => router.back()} />
+                    <Appbar.BackAction
+                        onPress={() => router.push('/courses')}
+                    />
                     <Appbar.Content title={course?.title || 'Course'} />
                 </Appbar.Header>
 
@@ -111,77 +121,11 @@ export default function CourseDetailScreen() {
                                             ) => a.ordering - b.ordering
                                         )
                                         .map((module: CourseModule) => (
-                                            <Card
+                                            <ModuleCard
                                                 key={module.module_id}
-                                                style={styles.card}
-                                                mode="elevated"
-                                                onPress={() =>
-                                                    router.push(
-                                                        `/(tabs)/modules/${module.module_id}`
-                                                    )
-                                                }
-                                            >
-                                                <Card.Content
-                                                    style={{
-                                                        padding:
-                                                            designTokens.spacing
-                                                                .xl,
-                                                    }}
-                                                >
-                                                    <View
-                                                        style={
-                                                            styles.moduleHeader
-                                                        }
-                                                    >
-                                                        <View
-                                                            style={{
-                                                                flexDirection:
-                                                                    'row',
-                                                                alignItems:
-                                                                    'center',
-                                                                flex: 1,
-                                                            }}
-                                                        >
-                                                            {module.module_color && (
-                                                                <View
-                                                                    style={[
-                                                                        styles.colorIndicator,
-                                                                        {
-                                                                            backgroundColor:
-                                                                                module.module_color,
-                                                                        },
-                                                                    ]}
-                                                                />
-                                                            )}
-                                                            <Text
-                                                                variant="titleMedium"
-                                                                style={{
-                                                                    fontWeight:
-                                                                        '600',
-                                                                    flex: 1,
-                                                                }}
-                                                            >
-                                                                {
-                                                                    module.module_title
-                                                                }
-                                                            </Text>
-                                                        </View>
-                                                    </View>
-                                                    {module.module_description && (
-                                                        <Text
-                                                            variant="bodyMedium"
-                                                            style={
-                                                                styles.description
-                                                            }
-                                                            numberOfLines={2}
-                                                        >
-                                                            {
-                                                                module.module_description
-                                                            }
-                                                        </Text>
-                                                    )}
-                                                </Card.Content>
-                                            </Card>
+                                                module={module}
+                                                course={course}
+                                            />
                                         ))
                                 )}
                             </>

@@ -136,6 +136,22 @@ async def get_module(
             "description": module.description,
             "created_at": module.created_at,
             "updated_at": module.updated_at,
+            "posts": [
+                {
+                    "post_id": mp.post_id,
+                    "post_title": mp.post.title if mp.post else "",
+                    "post_type": mp.post.type if mp.post else None,
+                    "post_text": mp.post.text if mp.post else None,
+                    "post_image": mp.post.image if mp.post else None,
+                    "post_file_url": mp.post.file_url if mp.post else None,
+                    "post_file_name": mp.post.file_name if mp.post else None,
+                    "post_video_url": mp.post.video_url if mp.post else None,
+                    "post_video_name": mp.post.video_name if mp.post else None,
+                    "ordering": mp.ordering,
+                }
+                for mp in module.module_posts
+            ]
+            or [],
         }
         # only show modules a user is associated with if non-admin
     else:

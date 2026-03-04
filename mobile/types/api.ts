@@ -157,20 +157,22 @@ export interface ModuleDetail extends Module {
 export interface Post {
     id: number;
     title: string;
-    type?: string | null;
     text?: string | null;
 }
 
 export interface PostGeneric extends Post {
+    type: 'generic';
     image?: string | null;
 }
 
 export interface PostAttachment extends Post {
+    type: 'attachment';
     file_url?: string | null;
     file_name?: string | null;
 }
 
 export interface PostVideo extends Post {
+    type: 'video';
     video_url?: string | null;
     video_name?: string | null;
 }
